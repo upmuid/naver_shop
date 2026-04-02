@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirect</title>
+  <style>
+    body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }
+    .box { background: #fff; padding: 36px 32px; border-radius: 12px; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,.08); width: 320px; }
+    .count { font-size: 48px; font-weight: 700; color: #4f6ef7; margin: 12px 0; }
+    input { width: 100%; padding: 6px 8px; margin: 4px 0 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; box-sizing: border-box; }
+    label { font-size: 12px; color: #666; display: block; text-align: left; }
+    .btns { display: flex; gap: 8px; margin-top: 16px; }
+    button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .go  { background: #4f6ef7; color: #fff; }
+    .pause { background: #eee; color: #333; }
+    .edit-area { margin-top: 16px; text-align: left; display: none; }
+  </style>
+</head>
+<body>
+<div class="box">
+  <div style="color:#333;font-size:15px;font-weight:600">페이지 이동 중</div>
+  <div class="count" id="count">3</div>
+
+  <div class="edit-area" id="editArea">
+    <label>aot_sub1</label><input id="sub1" />
+    <label>aot_sub2</label><input id="sub2" />
+    <label>aot_sub3</label><input id="sub3" />
+  </div>
+
+  <div class="btns">
+    <button class="go"    onclick="go()">지금 이동</button>
+    <button class="pause" id="pauseBtn" onclick="togglePause()">일시정지</button>
+  </div>
+</div>
+
+<script> 
+  const BASE = "https://ofw.adison.co/u/naverpay/ads/1023913?from=ad_list&aot_source=pincrux&aot_medium=a_pincrux_cps_r_2";
+
+  // 현재 URL에서 sub 파라미터 추출
+  const p = new URLSearchParams(location.search);
+  let sub1 = p.get("aot_sub1") || "";
+  let sub2 = p.get("aot_sub2") || "";
+  let sub3 = p.get("aot_sub3") || "";
+
+  // 입력값 초기화
+  document.getElementById("sub1").value = sub1;
+  document.getElementById("sub2").value = sub2;
+  document.getElementById("sub3").value = sub3;
+
+  function buildURL() {
+    const s1 = document.getElementById("sub1").value;
+    const s2 = document.getElementById("sub2").value;
+    const s3 = document.getElementById("sub3").value;
+    return BASE
+      + (s1 ? "&aot_sub1=" + encodeURIComponent(s1) : "")
+      + (s2 ? "&aot_sub2=" + encodeURIComponent(s2) : "")
+      + (s3 ? "&aot_sub3=" + encodeURIComponent(s3) : "");
+  }
+
+  function go() { location.href = buildURL(); }
+
+  let count = 3, paused = false, timer;
+
+  function tick() {
+    timer = setInterval(() => {
+      if (paused) return;
+      count--;
+      document.getElementById("count").textContent = count;
+      if (count <= 0) { clearInterval(timer); go(); }
+    }, 1000);
+  }
+
+  function togglePause() {
+    paused = !paused;
+    const btn = document.getElementById("pauseBtn");
+    const edit = document.getElementById("editArea");
+    if (paused) {
+      btn.textContent = "재시작";
+      edit.style.display = "block";
+    } else {
+      btn.textContent = "일시정지";
+      edit.style.display = "none";
+    }
+  }
+
+  tick();
+</script>
+</body>
+</html>
