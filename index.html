@@ -4,23 +4,43 @@
   <meta charset="UTF-8">
   <title>Redirect</title>
   <style>
-    body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }
-    .box { background: #fff; padding: 36px 32px; border-radius: 12px; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,.08); width: 320px; }
-    .count { font-size: 48px; font-weight: 700; color: #4f6ef7; margin: 12px 0; }
-    input { width: 100%; padding: 6px 8px; margin: 4px 0 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; box-sizing: border-box; }
-    label { font-size: 12px; color: #666; display: block; text-align: left; }
-    .btns { display: flex; gap: 8px; margin-top: 16px; }
-    button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
-    .go  { background: #4f6ef7; color: #fff; }
+    body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
+    .box { background: #fff; padding: 28px 28px; border-radius: 12px; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,.08); width: 340px; }
+
+    /* 파라미터 표시 영역 */
+    .params { background: #f8f9ff; border: 1px solid #e0e5ff; border-radius: 8px; padding: 12px 14px; margin-bottom: 20px; text-align: left; }
+    .params .row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 3px 0; }
+    .params .key { color: #888; min-width: 80px; }
+    .params .val { color: #4f6ef7; font-weight: 600; font-size: 11px; word-break: break-all; text-align: right; }
+
+    .count { font-size: 52px; font-weight: 700; color: #4f6ef7; margin: 8px 0; }
+    .label { font-size: 14px; color: #555; margin-bottom: 4px; }
+
+    /* 편집 영역 */
+    .edit-area { text-align: left; display: none; margin: 14px 0; }
+    .edit-area label { font-size: 11px; color: #888; display: block; margin-top: 8px; }
+    .edit-area input { width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; box-sizing: border-box; }
+
+    .btns { display: flex; gap: 8px; margin-top: 14px; }
+    button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .go    { background: #4f6ef7; color: #fff; }
     .pause { background: #eee; color: #333; }
-    .edit-area { margin-top: 16px; text-align: left; display: none; }
   </style>
 </head>
 <body>
 <div class="box">
-  <div style="color:#333;font-size:15px;font-weight:600">페이지 이동 중</div>
+
+  <!-- 항상 노출되는 파라미터 -->
+  <div class="params">
+    <div class="row"><span class="key">aot_sub1</span><span class="val" id="disp1">-</span></div>
+    <div class="row"><span class="key">aot_sub2</span><span class="val" id="disp2">-</span></div>
+    <div class="row"><span class="key">aot_sub3</span><span class="val" id="disp3">-</span></div>
+  </div>
+
+  <div class="label">페이지 이동 중</div>
   <div class="count" id="count">3</div>
 
+  <!-- 일시정지 시 편집 -->
   <div class="edit-area" id="editArea">
     <label>aot_sub1</label><input id="sub1" />
     <label>aot_sub2</label><input id="sub2" />
@@ -33,19 +53,41 @@
   </div>
 </div>
 
-<script> 
+<script>
   const BASE = "https://ofw.adison.co/u/naverpay/ads/1023913?from=ad_list&aot_source=pincrux&aot_medium=a_pincrux_cps_r_2";
 
-  // 현재 URL에서 sub 파라미터 추출
-  const p = new URLSearchParams(location.search);
-  let sub1 = p.get("aot_sub1") || "";
-  let sub2 = p.get("aot_sub2") || "";
-  let sub3 = p.get("aot_sub3") || "";
+  // 현재 날짜/시간 포맷: YYYYMMDD_HHMMSS
+  function nowStr() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    return d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate())
+      + '_' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+  }
 
-  // 입력값 초기화
-  document.getElementById("sub1").value = sub1;
-  document.getElementById("sub2").value = sub2;
-  document.getElementById("sub3").value = sub3;
+  // 기본 파라미터 자동 생성
+  const defaults = {
+    sub1: "pinkey_" + nowStr(),
+    sub2: "pubkey_jason_test",
+    sub3: "pubkey_jason_test"
+  };
+
+  // 입력 필드 초기화
+  document.getElementById("sub1").value = defaults.sub1;
+  document.getElementById("sub2").value = defaults.sub2;
+  document.getElementById("sub3").value = defaults.sub3;
+
+  // 상단 표시 업데이트
+  function updateDisplay() {
+    document.getElementById("disp1").textContent = document.getElementById("sub1").value || "-";
+    document.getElementById("disp2").textContent = document.getElementById("sub2").value || "-";
+    document.getElementById("disp3").textContent = document.getElementById("sub3").value || "-";
+  }
+  updateDisplay();
+
+  // 입력 변경 시 실시간 반영
+  ["sub1","sub2","sub3"].forEach(id =>
+    document.getElementById(id).addEventListener("input", updateDisplay)
+  );
 
   function buildURL() {
     const s1 = document.getElementById("sub1").value;
@@ -78,6 +120,7 @@
       btn.textContent = "재시작";
       edit.style.display = "block";
     } else {
+      updateDisplay();
       btn.textContent = "일시정지";
       edit.style.display = "none";
     }
