@@ -175,7 +175,7 @@
     if (paused) return;
     count--;
     countEl.textContent = count;
-    if (count <= 0) { clearInterval(timer); go(true); }
+    if (count <= 0) { clearInterval(timer); go(false); }
   }, 1000);
 
   function togglePause() {
